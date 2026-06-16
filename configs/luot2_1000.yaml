@@ -1,5 +1,5 @@
 DATASET:
-  ROOT_DIR: "/kaggle/input/open-earth-map"
+  ROOT_DIR: "/kaggle/input/datasets/dyiyacao/openearthmap"
   TRAIN_IMG_DIR: "images/train"
   TRAIN_MASK_DIR: "labels/train"
   VAL_ROOT_DIR: "/kaggle/working/unetformer-openearthmap/dataset"
