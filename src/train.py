@@ -56,6 +56,8 @@ def set_lr(optimizer, lr: float):
 
 
 def is_main() -> bool:
+    if not dist.is_available() or not dist.is_initialized():
+        return True
     return dist.get_rank() == 0
 
 
