@@ -118,9 +118,9 @@ pip install -r requirements.txt
 
 ```
 torch==2.10.0+cu128   torchvision==0.25.0+cu128
-timm==1.0.26          albumentations==1.3.1
-rasterio==1.3.9       pyyaml==6.0.1
-matplotlib==3.8.2     einops==0.7.0
+timm==1.0.26          albumentations>=1.3.1
+rasterio>=1.4         pyyaml>=6.0.3
+matplotlib>=3.9       einops>=0.7.0
 ```
 
 ---
@@ -150,7 +150,7 @@ bash run_experiment.sh 1 --dry-run
 ```bash
 # Step 1 — generate split files
 python Tools/create_splits.py \
-    --data-root /kaggle/input/open-earth-map \
+    --data-root /kaggle/input/datasets/dyiyacao/openearthmap \
     --output-dir /kaggle/working/unetformer-openearthmap
 
 # Step 2 — start training (2 GPUs)

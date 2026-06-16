@@ -10,7 +10,7 @@
 set -e  # dừng ngay nếu có lỗi
 
 # ── Cấu hình đường dẫn ───────────────────────────────────────────────────────
-DATA_ROOT="/kaggle/input/open-earth-map"
+DATA_ROOT="/kaggle/input/datasets/dyiyacao/openearthmap"
 WORK_BASE="/kaggle/working/unetformer-openearthmap"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 

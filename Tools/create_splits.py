@@ -8,7 +8,7 @@ Workflow (called automatically in sequence):
 
 Usage (Kaggle):
     python tools/create_splits.py \
-        --data-root /kaggle/input/open-earth-map \
+        --data-root /kaggle/input/datasets/dyiyacao/openearthmap \
         --output-dir /kaggle/working/unetformer-openearthmap
 
 Usage (local):
@@ -47,18 +47,59 @@ def write_split(path, names, skip_if_exists=False):
     print(f'  Created: {path}  ({len(names)} samples)')
 
 
+def find_data_base(data_root):
+    """Auto-detect actual dataset base by probing common subdirectory layouts."""
+    candidates = [
+        data_root,
+        os.path.join(data_root, 'OpenEarthMap_Mini'),
+        os.path.join(data_root, 'OpenEarthMap_flat'),
+        os.path.join(data_root, 'OpenEarthMap'),
+        os.path.join(data_root, 'openearthmap'),
+    ]
+    for c in candidates:
+        if os.path.isdir(os.path.join(c, 'images', 'val')) or \
+           os.path.isdir(os.path.join(c, 'images', 'train')):
+            if c != data_root:
+                print(f'  Auto-detected dataset base: {c}')
+            return c
+
+    # Diagnostic output if nothing found
+    print(f'\nERROR: Could not find images/train or images/val under any of:')
+    for c in candidates:
+        print(f'  {c}')
+    if os.path.isdir(data_root):
+        contents = sorted(os.listdir(data_root))
+        print(f'\nContents of {data_root}:')
+        for item in contents[:30]:
+            full = os.path.join(data_root, item)
+            kind = '[dir]' if os.path.isdir(full) else '[file]'
+            print(f'  {kind}  {item}')
+    return data_root  # fall through so downstream raises the real error
+
+
+def find_label_subdir(base):
+    """Detect whether labels live in 'labels/' or 'label/'."""
+    for name in ('labels', 'label'):
+        if os.path.isdir(os.path.join(base, name)):
+            return name
+    return 'labels'  # default
+
+
 # ── Step 1: call prepare_splits.py ───────────────────────────────────────────
 
 def run_prepare_splits(data_root, output_dir, seed, img_suffix):
     """Delegate val split generation to prepare_splits.py."""
+    base = find_data_base(data_root)
+    label_sub = find_label_subdir(base)
+
     script = os.path.join(os.path.dirname(__file__), 'prepare_splits.py')
     cmd = [
         sys.executable, script,
-        '--val-dir',       os.path.join(data_root, 'images', 'val'),
-        '--label-dir',     os.path.join(data_root, 'labels', 'val'),
+        '--val-dir',       os.path.join(base, 'images', 'val'),
+        '--label-dir',     os.path.join(base, label_sub, 'val'),
         '--out-dir',       output_dir,
         '--aug-img-dir',   os.path.join(output_dir, 'images', 'val'),
-        '--aug-label-dir', os.path.join(output_dir, 'labels', 'val'),
+        '--aug-label-dir', os.path.join(output_dir, label_sub, 'val'),
         '--seed',          str(seed),
         '--img-suffix',    img_suffix,
         '--val-size',      '2000',
@@ -77,7 +118,8 @@ def run_prepare_splits(data_root, output_dir, seed, img_suffix):
 # ── Step 2: train splits ──────────────────────────────────────────────────────
 
 def run_train_splits(data_root, output_dir, seed, img_suffix):
-    train_dir = os.path.join(data_root, 'images', 'train')
+    base = find_data_base(data_root)
+    train_dir = os.path.join(base, 'images', 'train')
     print(f'\n=== Step 2: train splits ===')
     print(f'Scanning: {train_dir}')
     train_names = scan_images(train_dir, img_suffix)
@@ -106,7 +148,7 @@ def main():
     parser = argparse.ArgumentParser(
         description='Create all OpenEarthMap split files (val via prepare_splits, then train)')
     parser.add_argument('--data-root', required=True,
-                        help='Dataset root (where images/train/ and images/val/ live)')
+                        help='Dataset root (e.g. /kaggle/input/datasets/dyiyacao/openearthmap)')
     parser.add_argument('--output-dir', default=None,
                         help='Where to write .txt files. '
                              'On Kaggle: /kaggle/working/unetformer-openearthmap. '

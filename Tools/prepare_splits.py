@@ -37,11 +37,11 @@ def parse_args():
         description='Create val split .txt for OpenEarthMap (with augmentation fallback)')
     p.add_argument(
         '--val-dir',
-        default='/kaggle/input/open-earth-map/OpenEarthMap_flat/images/val',
+        default='/kaggle/input/datasets/dyiyacao/openearthmap/images/val',
         help='Source directory containing validation images')
     p.add_argument(
         '--label-dir',
-        default='/kaggle/input/open-earth-map/OpenEarthMap_flat/label/val',
+        default='/kaggle/input/datasets/dyiyacao/openearthmap/labels/val',
         help='Source directory containing validation labels/masks')
     p.add_argument(
         '--out-dir',
@@ -220,8 +220,8 @@ def main():
     if 'ipykernel' in sys.modules:
         sys.argv = [
             'prepare_splits.py',
-            '--val-dir',       '/kaggle/input/open-earth-map/images/val',
-            '--label-dir',     '/kaggle/input/open-earth-map/labels/val',
+            '--val-dir',       '/kaggle/input/datasets/dyiyacao/openearthmap/images/val',
+            '--label-dir',     '/kaggle/input/datasets/dyiyacao/openearthmap/labels/val',
             '--out-dir',       '/kaggle/working/unetformer-openearthmap/dataset',
             '--aug-img-dir',   '/kaggle/working/unetformer-openearthmap/dataset/images/val',
             '--aug-label-dir', '/kaggle/working/unetformer-openearthmap/dataset/labels/val',
