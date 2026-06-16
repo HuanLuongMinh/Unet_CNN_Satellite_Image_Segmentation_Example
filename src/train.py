@@ -10,6 +10,8 @@ import argparse
 import csv
 import os
 import sys
+import time
+from datetime import datetime
 
 import numpy as np
 import torch
@@ -134,6 +136,8 @@ def main():
 
     # ── DDP init ────────────────────────────────────────────────────────────
     dist.init_process_group(backend='nccl')
+    train_start    = time.time()
+    start_datetime = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     local_rank = int(os.environ['LOCAL_RANK'])
     device = torch.device(f'cuda:{local_rank}')
     torch.cuda.set_device(device)
@@ -370,6 +374,21 @@ def main():
 
         except Exception as e:
             log(f"Warning: could not save charts — {e}")
+
+    if is_main():
+        elapsed      = time.time() - train_start
+        end_datetime = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        hours        = int(elapsed // 3600)
+        minutes      = int((elapsed % 3600) // 60)
+        seconds      = int(elapsed % 60)
+
+        num       = os.path.basename(out['WORK_DIR']).split('_')[-1]
+        time_path = os.path.join(out['WORK_DIR'], f'time_{num}.txt')
+        with open(time_path, 'w', encoding='utf-8') as f:
+            f.write(f'Bắt đầu      : {start_datetime}\n')
+            f.write(f'Kết thúc     : {end_datetime}\n')
+            f.write(f'Tổng thời gian: {hours:02d}h {minutes:02d}m {seconds:02d}s\n')
+        print(f'Saved timing → {time_path}', flush=True)
 
     dist.destroy_process_group()
     log("Done.")
