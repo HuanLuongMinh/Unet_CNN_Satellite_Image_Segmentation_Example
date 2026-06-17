@@ -37,7 +37,7 @@ case "$EXPERIMENT" in
 esac
 
 echo "========================================================"
-echo " UNetFormer Ablation — $LABEL"
+echo " UNet CNN Ablation — $LABEL"
 if [[ "$DRY_RUN" == "--dry-run" ]]; then
     echo " [DRY-RUN] Chỉ chạy 5 iterations để kiểm tra"
 fi

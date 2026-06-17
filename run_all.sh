@@ -13,7 +13,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DRY_RUN="${1:-}"
 
 echo "========================================================"
-echo " UNetFormer — Full Ablation (3 experiments)"
+echo " UNet CNN — Full Ablation (3 experiments)"
 if [[ "$DRY_RUN" == "--dry-run" ]]; then
     echo " [DRY-RUN] 5 iterations mỗi lượt"
 fi

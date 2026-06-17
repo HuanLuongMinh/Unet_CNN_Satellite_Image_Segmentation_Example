@@ -1,4 +1,4 @@
-# UNetFormer — Satellite Image Semantic Segmentation
+# UNet CNN — Satellite Image Semantic Segmentation
 
 An ablation study comparing **CNN encoders (ResNet-18, ResNet-101)** vs. **Vision Transformer encoder (MiT-B0)** on the [OpenEarthMap](https://open-earth-map.org/) dataset using a dynamic multi-encoder UNetFormer architecture.
 
