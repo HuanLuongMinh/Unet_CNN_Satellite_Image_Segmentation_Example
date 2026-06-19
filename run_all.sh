@@ -22,8 +22,9 @@ echo "========================================================"
 # ── Bước 1: Cài requirements (1 lần) ────────────────────────────────────────
 echo ""
 echo "[1/5] Cài đặt requirements ..."
-# Kaggle pre-installs numba/cuda-core ở version mới hơn cudf/cuml cần.
-# pip báo conflict warnings (exit 1) nhưng không ảnh hưởng code của chúng ta.
+# requirements.txt đã ghim numba/numba-cuda/cuda-core đúng dải cudf/cuml/dask-cuda cần,
+# nên không còn conflict warnings. Giữ "|| true" làm lưới an toàn phòng trường hợp
+# Kaggle đổi version base image.
 pip install -q -r "$SCRIPT_DIR/requirements.txt" || true
 echo "      Done."
 
