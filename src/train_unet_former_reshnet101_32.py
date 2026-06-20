@@ -90,7 +90,7 @@ def log(msg: str):
 def load_checkpoint_file(path: str) -> dict:
     if not os.path.exists(path):
         raise FileNotFoundError(f'--resume checkpoint not found: {path}')
-    return torch.load(path, map_location='cpu')
+    return torch.load(path, map_location='cpu', weights_only=False)
 
 
 def save_checkpoint(path: str, model, optimizer, scaler, iteration: int,
@@ -101,7 +101,7 @@ def save_checkpoint(path: str, model, optimizer, scaler, iteration: int,
         'optimizer_state_dict': optimizer.state_dict(),
         'scaler_state_dict':    scaler.state_dict(),
         'early_stopping': {
-            'best':      early_stopping.best,
+            'prev':      early_stopping.prev,
             'counter':   early_stopping.counter,
             'triggered': early_stopping.triggered,
         },
@@ -279,7 +279,7 @@ def main():
     # ── Training state ───────────────────────────────────────────────────────
     early_stopping = EarlyStopping(patience=tr['EARLY_STOPPING_PATIENCE'])
     if resume_ckpt is not None:
-        early_stopping.best      = resume_ckpt['early_stopping']['best']
+        early_stopping.prev      = resume_ckpt['early_stopping']['prev']
         early_stopping.counter   = resume_ckpt['early_stopping']['counter']
         early_stopping.triggered = resume_ckpt['early_stopping']['triggered']
 
@@ -291,8 +291,11 @@ def main():
     if resume_ckpt is not None and is_main():
         best_path = os.path.join(out['WORK_DIR'], 'best_model.pth')
         if os.path.exists(best_path):
-            best_state_dict = torch.load(best_path, map_location='cpu')
+            best_state_dict = torch.load(best_path, map_location='cpu', weights_only=False)
             log(f"Reloaded best_model.pth (mIoU={best_miou:.4f}) for export continuity")
+        elif best_miou > 0.0:
+            log(f"WARNING: resumed with best_miou={best_miou:.4f} but {best_path} "
+                f"was not found — best checkpoint weights are unavailable until a new best is found.")
 
         csv_path = os.path.join(out['WORK_DIR'], 'benchmark_results.csv')
         if os.path.exists(csv_path):
@@ -412,9 +415,13 @@ def main():
     if is_main():
         # Save best_model.pth if training ended normally (no early stop saved it yet)
         ckpt_path = os.path.join(out['WORK_DIR'], 'best_model.pth')
-        if not os.path.exists(ckpt_path) and best_state_dict is not None:
-            torch.save(best_state_dict, ckpt_path)
-            log(f"Saved best model (mIoU={best_miou:.4f}) → {ckpt_path}")
+        if not os.path.exists(ckpt_path):
+            if best_state_dict is not None:
+                torch.save(best_state_dict, ckpt_path)
+                log(f"Saved best model (mIoU={best_miou:.4f}) → {ckpt_path}")
+            elif best_miou > 0.0:
+                log(f"WARNING: best_miou={best_miou:.4f} but no best checkpoint weights "
+                    f"were available to write to {ckpt_path}.")
 
         try:
             import matplotlib.pyplot as plt
