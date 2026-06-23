@@ -451,7 +451,9 @@ class UNetFormerDAPCN(nn.Module):
         if self.boundary_lambda > 0:
             b_pred = extract_boundary_map(logits_native, mode=self.boundary_mode)
             b_gt = compute_boundary_gt(gt_native, ignore_index=self.ignore_index)
-            aux['loss_boundary'] = self.boundary_lambda * F.binary_cross_entropy(b_pred, b_gt.float())
+            with torch.autocast(device_type=logits_native.device.type, enabled=False):
+                bce = F.binary_cross_entropy(b_pred.float(), b_gt.float())
+            aux['loss_boundary'] = self.boundary_lambda * bce
 
         if self.proto_lambda > 0:
             # da_position='after_fusion' → dùng fused feature

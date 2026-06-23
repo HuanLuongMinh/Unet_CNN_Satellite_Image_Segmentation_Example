@@ -30,7 +30,7 @@ import torch
 import torch.distributed as dist
 import torch.nn as nn
 import yaml
-from torch.cuda.amp import GradScaler, autocast
+from torch.amp import GradScaler, autocast
 from torch.nn.parallel import DistributedDataParallel as DDP
 from torch.utils.data import DataLoader
 from torch.utils.data.distributed import DistributedSampler
@@ -128,7 +128,7 @@ def validate(model, loader, criterion, num_classes: int,
     for images, masks in loader:
         images = images.to(device, non_blocking=True)
         masks  = masks.to(device,  non_blocking=True)
-        with autocast(enabled=amp_enabled):
+        with autocast('cuda', enabled=amp_enabled):
             logits = model(images)
             loss   = criterion(logits, masks)
         total_loss += loss.item()
@@ -162,7 +162,7 @@ def visualise_samples(model, loader, work_dir: str, iteration: int,
             if count >= n:
                 return
             img   = images[i].to(device).unsqueeze(0)
-            with autocast(enabled=amp_enabled):
+            with autocast('cuda', enabled=amp_enabled):
                 logit = model(img)
             pred   = logit.argmax(dim=1).squeeze(0).cpu().numpy()
             gt     = masks[i].cpu().numpy()
@@ -275,7 +275,7 @@ def main():
         lr=opt['BASE_LR'],
         weight_decay=opt['WEIGHT_DECAY'],
     )
-    scaler = GradScaler()
+    scaler = GradScaler('cuda')
     if resume_ckpt is not None:
         optimizer.load_state_dict(resume_ckpt['optimizer_state_dict'])
         scaler.load_state_dict(resume_ckpt['scaler_state_dict'])
@@ -336,7 +336,7 @@ def main():
         masks  = masks.to(device,  non_blocking=True)
 
         optimizer.zero_grad(set_to_none=True)
-        with autocast():
+        with autocast('cuda'):
             logits, aux = model(images, masks)   # DAPCN: forward trả thêm aux losses
             loss = criterion(logits, masks)      # CE
             for _v in aux.values():               # + boundary + DAPG (đã weighted sẵn)
